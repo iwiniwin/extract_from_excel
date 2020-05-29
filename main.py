@@ -2,7 +2,7 @@
 # @Author: iwiniwin
 # @Date:   2018-02-01 10:33:33
 # @Last Modified by:   LensarZhang
-# @Last Modified time: 2020-05-29 18:42:57
+# @Last Modified time: 2020-05-29 19:14:18
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -22,7 +22,7 @@ import thread
 import xlwt
 import xlrd
 
-phone_pattern = re.compile(r'1[3-9]\d{9}')
+phone_pattern = re.compile(r'(?<!\d)1[3-9]\d{9}(?!\d)')
 
 email_pattern = re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}')
 
@@ -165,7 +165,7 @@ class FileDropTarget(wx.FileDropTarget):
 class MyFrame(wx.Frame):
 
     def __init__(self):
-		wx.Frame.__init__(self, None, title=u'手机号邮箱提取工具',size=(480,320))
+		wx.Frame.__init__(self, None, title=u'excel提取工具',size=(480,320))
 		self.Center()
 		# self.icon = wx.Icon('icon.ico', wx.BITMAP_TYPE_ICO)
 		# self.SetIcon(self.icon)
