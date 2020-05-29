@@ -1,0 +1,7 @@
+{
+	"_comment": "filter_chinese配置是否过滤中文，filter_filename配置过滤的文件，大小写不敏感",
+	"filter_chinese": true,
+	"filter_filename": [
+		"config"
+	]
+}
