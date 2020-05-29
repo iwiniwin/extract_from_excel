@@ -1,1 +1,2 @@
 # extract_from_excel
+用于提取excel表格中的手机号和邮箱信息
