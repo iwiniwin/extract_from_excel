@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Author: iwiniwin
 # @Date:   2018-02-01 10:33:33
-# @Last Modified by:   LensarZhang
-# @Last Modified time: 2020-05-29 19:14:18
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
