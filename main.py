@@ -19,12 +19,14 @@ import threading
 import thread
 import xlwt
 import xlrd
+import openpyxl
 
 phone_pattern = re.compile(r'(?<!\d)1[3-9]\d{9}(?!\d)')
 
 email_pattern = re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}')
 
-suffix = ".xls"
+xls_suffix = ".xls"
+xlsx_suffix = ".xlsx"
 
 
 config = {"filter_chinese" : True, "filter_filename" : "config"}
@@ -40,8 +42,8 @@ def dump(*args):
 def extract(path):
 	(filepath,tempfilename) = os.path.split(path)
 	(filename,extension) = os.path.splitext(tempfilename)
-	phones, emails = read_book(path)
-	return write_book(u'提取结果-' + filename + suffix, phones, emails)
+	phones, emails = read_book(path, extension)
+	return write_book(u'提取结果-' + filename + xls_suffix, phones, emails)
 
 # 4053 5030
 
@@ -49,13 +51,20 @@ def extract(path):
 # 15974
 # 3986
 # 7197
-def read_book(path):
-	wb = xlrd.open_workbook(path)
+def read_book(path, extension):
+	
 
 	phones = []
 	emails = []
-	for i in range(0, wb.nsheets):
-		read_sheet(wb.sheet_by_index(i), phones, emails)
+
+	if extension == xlsx_suffix:
+		inwb = openpyxl.load_workbook(path) 
+		for sheet in inwb:
+			read_sheet2(sheet, phones, emails)
+	else:
+		wb = xlrd.open_workbook(path)
+		for i in range(0, wb.nsheets):
+			read_sheet(wb.sheet_by_index(i), phones, emails)
 
 	dump(len(phones))
 	dump(len(emails))
@@ -82,6 +91,21 @@ def read_sheet(sh, phones, emails):
 			p = email_pattern.findall(t)
 			if len(p) > 0:
 				emails.extend(p)
+
+def read_sheet2(sh, phones, emails):
+	# 处理一个表
+	print u"sheet %s 共 %d 行 %d 列" % (sh.title, sh.max_row, sh.max_column)
+	dump(u"sheet %s 共 %d 行 %d 列" % (sh.title, sh.max_row, sh.max_column))
+	for r in range(1, 100):
+		for c in range(1, sh.max_column + 1):
+			t = str(sh.cell(row = r, column = c).value) #读文件
+			p = phone_pattern.findall(t)
+			if len(p) > 0:
+				phones.extend(p)
+			else:
+				p = email_pattern.findall(t)
+				if len(p) > 0:
+					emails.extend(p)
 
 def write_book(path, phones, emails):
 	# 创建 xls 文件对象
@@ -163,7 +187,7 @@ class FileDropTarget(wx.FileDropTarget):
 class MyFrame(wx.Frame):
 
     def __init__(self):
-		wx.Frame.__init__(self, None, title=u'excel提取工具',size=(480,320))
+		wx.Frame.__init__(self, None, title=u'excel提取工具2.0',size=(480,320))
 		self.Center()
 		# self.icon = wx.Icon('icon.ico', wx.BITMAP_TYPE_ICO)
 		# self.SetIcon(self.icon)
@@ -178,8 +202,11 @@ class MyFrame(wx.Frame):
 
 
 if __name__ == "__main__":
-	app = wx.App(True)
+	# app = wx.App(True)
 
-	frm = MyFrame()
-	frm.Show()
-	app.MainLoop()
+	# frm = MyFrame()
+	# frm.Show()
+	# app.MainLoop()
+	extract(u"C:/Users/LensarZhang/Documents/WeChat Files/wxid_p6tvxiqyctgc22/FileStorage/File/2020-10/防护服.xlsx")
+	# extract("G:/Project/extract_from_excel/dist/aaaa.xls")
+	# extract(u"G:/Project/extract_from_excel/dist/sss.xlsx")
