@@ -20,6 +20,7 @@ import thread
 import xlwt
 import xlrd
 import openpyxl
+from openpyxl.styles import Font, Fill
 
 phone_pattern = re.compile(r'(?<!\d)1[3-9]\d{9}(?!\d)')
 
@@ -43,7 +44,10 @@ def extract(path):
 	(filepath,tempfilename) = os.path.split(path)
 	(filename,extension) = os.path.splitext(tempfilename)
 	phones, emails = read_book(path, extension)
-	return write_book(u'提取结果-' + filename + xls_suffix, phones, emails)
+	if extension == xlsx_suffix:
+		return write_book2(u'提取结果-' + filename + extension, phones, emails)
+	else:
+		return write_book(u'提取结果-' + filename + extension, phones, emails)
 
 # 4053 5030
 
@@ -69,8 +73,10 @@ def read_book(path, extension):
 	dump(len(phones))
 	dump(len(emails))
 
-	phones = sorted(set(phones), key = phones.index)
-	emails = sorted(set(emails), key = emails.index)
+	# phones = sorted(set(phones), key = phones.index)  # 用于过滤重复元素
+	# emails = sorted(set(emails), key = emails.index)  # 用于过滤重复元素
+	phones = {}.fromkeys(phones).keys()
+	emails = {}.fromkeys(emails).keys()
 
 	dump(len(phones))
 	dump(len(emails))
@@ -90,22 +96,20 @@ def read_sheet(sh, phones, emails):
 				phones.extend(p)
 			p = email_pattern.findall(t)
 			if len(p) > 0:
-				emails.extend(p)
+					emails.extend(p)
 
 def read_sheet2(sh, phones, emails):
 	# 处理一个表
-	print u"sheet %s 共 %d 行 %d 列" % (sh.title, sh.max_row, sh.max_column)
 	dump(u"sheet %s 共 %d 行 %d 列" % (sh.title, sh.max_row, sh.max_column))
-	for r in range(1, 100):
-		for c in range(1, sh.max_column + 1):
-			t = str(sh.cell(row = r, column = c).value) #读文件
+	for row in sh.iter_rows(min_row=1, min_col=1, max_row=sh.max_row, max_col=sh.max_column):
+	    for cell in row:
+			t = str(cell.value) #读文件
 			p = phone_pattern.findall(t)
 			if len(p) > 0:
 				phones.extend(p)
-			else:
-				p = email_pattern.findall(t)
-				if len(p) > 0:
-					emails.extend(p)
+			p = email_pattern.findall(t)
+			if len(p) > 0:
+				emails.extend(p)
 
 def write_book(path, phones, emails):
 	# 创建 xls 文件对象
@@ -142,6 +146,36 @@ def write_book(path, phones, emails):
 	# 最后保存文件即可
 	try:
 		wb.save(path)
+	except Exception, err:
+		return err
+	return True
+
+def write_book2(path, phones, emails):
+	book = openpyxl.Workbook()
+	sheet = book.active
+
+	sheet['A1'] = u'手机号码'
+	sheet['B1'] = u'邮箱'
+
+	sheet.column_dimensions['A'].width = 20
+	sheet.column_dimensions['B'].width = 40
+	row_height = 16
+	sheet.row_dimensions[1].height = row_height
+
+	index = 2
+	for phone in phones:
+		sheet.row_dimensions[index].height = row_height
+		sheet['A' + str(index)] = phone
+		index = index + 1
+
+	index = 2
+	for email in emails:
+		sheet.row_dimensions[index].height = row_height
+		sheet['B' + str(index)] = email
+		index = index + 1
+
+	try:
+		book.save(path)
 	except Exception, err:
 		return err
 	return True
@@ -202,11 +236,8 @@ class MyFrame(wx.Frame):
 
 
 if __name__ == "__main__":
-	# app = wx.App(True)
+	app = wx.App(True)
 
-	# frm = MyFrame()
-	# frm.Show()
-	# app.MainLoop()
-	extract(u"C:/Users/LensarZhang/Documents/WeChat Files/wxid_p6tvxiqyctgc22/FileStorage/File/2020-10/防护服.xlsx")
-	# extract("G:/Project/extract_from_excel/dist/aaaa.xls")
-	# extract(u"G:/Project/extract_from_excel/dist/sss.xlsx")
+	frm = MyFrame()
+	frm.Show()
+	app.MainLoop()
